@@ -24,6 +24,9 @@ scheduler = BackgroundScheduler()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
+# Set debug mode for development
+app.debug = True if os.environ.get("FLASK_ENV") == "development" or os.environ.get("SESSION_SECRET") == "dev-secret-key" else False
+
 # Configure SQLite database
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sync_app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
