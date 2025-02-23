@@ -1,12 +1,12 @@
-# Deployment Guide for ERP-Planner Sync Application
+# Deployment Guide for Exxas-Planner Sync Application
 
-This guide explains how to deploy the ERP-Planner Sync application on Ubuntu as a system service.
+This guide explains how to deploy the Exxas-Planner Sync application on Ubuntu as a system service.
 
 ## Prerequisites
 
 - Ubuntu 20.04 or newer
 - A non-root user with sudo privileges
-- Python 3.11 or newer
+- Python 3 or newer
 
 ## 1. System Preparation
 
@@ -15,7 +15,7 @@ First, update your system and install required dependencies:
 ```bash
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y python3.11 python3.11-venv python3.11-dev build-essential libpq-dev nginx
+sudo apt install -y python3 python3-venv python3-dev build-essential libpq-dev nginx
 ```
 
 ## 2. Create Application User and Directory
@@ -23,10 +23,10 @@ sudo apt install -y python3.11 python3.11-venv python3.11-dev build-essential li
 Create a dedicated system user for the application:
 
 ```bash
-sudo useradd -r -s /bin/false erp_sync
-sudo mkdir -p /opt/erp_sync
-sudo mkdir -p /var/log/erp_sync
-sudo chown -R erp_sync:erp_sync /opt/erp_sync /var/log/erp_sync
+sudo useradd -r -s /bin/false exxas_sync
+sudo mkdir -p /opt/exxas_sync
+sudo mkdir -p /var/log/exxas_sync
+sudo chown -R exxas_sync:exxas_sync /opt/exxas_sync /var/log/exxas_sync
 ```
 
 ## 3. Install Application
@@ -35,15 +35,15 @@ Clone or copy your application files to the installation directory:
 
 ```bash
 # As your regular user, copy application files
-sudo cp -r ./* /opt/erp_sync/
-cd /opt/erp_sync
+sudo cp -r ./* /opt/exxas_sync/
+cd /opt/exxas_sync
 
 # Create and activate virtual environment
-sudo python3.11 -m venv venv
-sudo chown -R erp_sync:erp_sync venv
+sudo python3 -m venv venv
+sudo chown -R exxas_sync:exxas_sync venv
 
 # Install dependencies
-sudo -u erp_sync ./venv/bin/pip install -r requirements.txt
+sudo -u exxas_sync ./venv/bin/pip install -r requirements.txt
 ```
 
 ## 4. Create Configuration File
@@ -51,8 +51,8 @@ sudo -u erp_sync ./venv/bin/pip install -r requirements.txt
 Create a configuration file for the application:
 
 ```bash
-sudo mkdir -p /etc/erp_sync
-sudo nano /etc/erp_sync/config.env
+sudo mkdir -p /etc/exxas_sync
+sudo nano /etc/exxas_sync/config.env
 ```
 
 Add the following content (adjust as needed):
@@ -60,15 +60,15 @@ Add the following content (adjust as needed):
 ```env
 FLASK_APP=main.py
 FLASK_ENV=production
-DATABASE_URL=sqlite:////opt/erp_sync/instance/sync_app.db
+DATABASE_URL=sqlite:////opt/exxas_sync/instance/sync_app.db
 SESSION_SECRET=your-secure-secret-key-here
 ```
 
 Set proper permissions:
 
 ```bash
-sudo chown -R erp_sync:erp_sync /etc/erp_sync
-sudo chmod 600 /etc/erp_sync/config.env
+sudo chown -R exxas_sync:exxas_sync /etc/exxas_sync
+sudo chmod 600 /etc/exxas_sync/config.env
 ```
 
 ## 5. Create Systemd Service
@@ -76,23 +76,23 @@ sudo chmod 600 /etc/erp_sync/config.env
 Create a systemd service file:
 
 ```bash
-sudo nano /etc/systemd/system/erp_sync.service
+sudo nano /etc/systemd/system/exxas_sync.service
 ```
 
 Add the following content:
 
 ```ini
 [Unit]
-Description=ERP-Planner Sync Application
+Description=Exxas-Planner Sync Application
 After=network.target
 
 [Service]
 Type=simple
-User=erp_sync
-Group=erp_sync
-WorkingDirectory=/opt/erp_sync
-EnvironmentFile=/etc/erp_sync/config.env
-ExecStart=/opt/erp_sync/venv/bin/gunicorn -w 4 -b 127.0.0.1:5000 main:app
+User=exxas_sync
+Group=exxas_sync
+WorkingDirectory=/opt/exxas_sync
+EnvironmentFile=/etc/exxas_sync/config.env
+ExecStart=/opt/exxas_sync/venv/bin/gunicorn -w 4 -b 127.0.0.1:5000 main:app
 Restart=always
 
 [Install]
@@ -104,7 +104,7 @@ WantedBy=multi-user.target
 Create Nginx configuration:
 
 ```bash
-sudo nano /etc/nginx/sites-available/erp_sync
+sudo nano /etc/nginx/sites-available/exxas_sync
 ```
 
 Add the following content:
@@ -114,8 +114,8 @@ server {
     listen 80;
     server_name your_domain.com;  # Replace with your domain
 
-    access_log /var/log/nginx/erp_sync_access.log;
-    error_log /var/log/nginx/erp_sync_error.log;
+    access_log /var/log/nginx/exxas_sync_access.log;
+    error_log /var/log/nginx/exxas_sync_error.log;
 
     location / {
         proxy_pass http://127.0.0.1:5000;
@@ -130,7 +130,7 @@ server {
 Enable the site:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/erp_sync /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/exxas_sync /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default  # Remove default site if exists
 sudo nginx -t  # Test configuration
 sudo systemctl restart nginx
@@ -143,11 +143,11 @@ sudo systemctl restart nginx
 sudo systemctl daemon-reload
 
 # Start and enable the application service
-sudo systemctl start erp_sync
-sudo systemctl enable erp_sync
+sudo systemctl start exxas_sync
+sudo systemctl enable exxas_sync
 
 # Verify service status
-sudo systemctl status erp_sync
+sudo systemctl status exxas_sync
 ```
 
 ## 8. Security Considerations
@@ -168,48 +168,42 @@ sudo ufw enable
 ## 9. Maintenance
 
 ### Logging
-- Application logs: `/var/log/erp_sync/sync_app.log`
-- Nginx access logs: `/var/log/nginx/erp_sync_access.log`
-- Nginx error logs: `/var/log/nginx/erp_sync_error.log`
-- System service logs: `sudo journalctl -u erp_sync`
+- Application logs: `/var/log/exxas_sync/sync_app.log`
+- Nginx access logs: `/var/log/nginx/exxas_sync_access.log`
+- Nginx error logs: `/var/log/nginx/exxas_sync_error.log`
+- System service logs: `sudo journalctl -u exxas_sync`
 
 ### Service Management
 ```bash
 # Restart application
-sudo systemctl restart erp_sync
+sudo systemctl restart exxas_sync
 
 # View logs
-sudo journalctl -u erp_sync -f
+sudo journalctl -u exxas_sync -f
 
 # Stop application
-sudo systemctl stop erp_sync
+sudo systemctl stop exxas_sync
 ```
 
 ### Updates
 To update the application:
 ```bash
 # Stop the service
-sudo systemctl stop erp_sync
+sudo systemctl stop exxas_sync
 
 # Update files
-sudo cp -r /path/to/new/files/* /opt/erp_sync/
+sudo cp -r /path/to/new/files/* /opt/exxas_sync/
 
 # Update dependencies if needed
-sudo -u erp_sync /opt/erp_sync/venv/bin/pip install -r /opt/erp_sync/requirements.txt
+sudo -u exxas_sync /opt/exxas_sync/venv/bin/pip install -r /opt/exxas_sync/requirements.txt
 
 # Restart the service
-sudo systemctl restart erp_sync
+sudo systemctl restart exxas_sync
 ```
 
-## 10. Requirements File
+### Dependencies
 
-First, create a requirements.txt file in your project:
-
-```bash
-sudo nano /opt/erp_sync/requirements.txt
-```
-
-Add the following dependencies:
+The following dependencies need to be installed:
 
 ```
 flask
@@ -228,26 +222,25 @@ werkzeug
 
 1. Check service status:
 ```bash
-sudo systemctl status erp_sync
+sudo systemctl status exxas_sync
 ```
 
 2. View application logs:
 ```bash
-sudo tail -f /var/log/erp_sync/sync_app.log
+sudo tail -f /var/log/exxas_sync/sync_app.log
 ```
 
 3. Check Nginx logs:
 ```bash
-sudo tail -f /var/log/nginx/erp_sync_error.log
+sudo tail -f /var/log/nginx/exxas_sync_error.log
 ```
 
 4. Verify permissions:
 ```bash
-sudo ls -la /opt/erp_sync
-sudo ls -la /var/log/erp_sync
+sudo ls -la /opt/exxas_sync
+sudo ls -la /var/log/exxas_sync
 ```
 
 5. Test application directly:
 ```bash
-sudo -u erp_sync /opt/erp_sync/venv/bin/python /opt/erp_sync/main.py
-```
+sudo -u exxas_sync /opt/exxas_sync/venv/bin/python /opt/exxas_sync/main.py
