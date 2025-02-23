@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Sync Status</h5>
+                <button class="btn btn-primary btn-sm" id="triggerSync">
+                    <i class="fas fa-sync"></i> Trigger Sync
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Last Sync:</strong>
+                    <span id="lastSync">
+                        {% if logs and logs[0] %}
+                            {{ logs[0].timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    <span id="syncStatus" class="badge {% if logs and logs[0] and logs[0].status == 'COMPLETED' %}bg-success{% else %}bg-warning{% endif %}">
+                        {% if logs and logs[0] %}
+                            {{ logs[0].status }}
+                        {% else %}
+                            Not configured
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Configuration Overview</h5>
+            </div>
+            <div class="card-body">
+                {% if config %}
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success"></i> Exxas API Configured</li>
+                    <li><i class="fas fa-check-circle text-success"></i> MS Planner API Configured</li>
+                    <li><i class="fas fa-clock"></i> Sync Interval: {{ config.sync_interval }} minutes</li>
+                </ul>
+                {% else %}
+                <div class="alert alert-warning">
+                    Configuration not set. Please visit the <a href="{{ url_for('sync.config') }}">configuration page</a>.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Recent Sync Logs</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Status</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td><span class="badge {% if log.status == 'COMPLETED' %}bg-success{% elif log.status == 'ERROR' %}bg-danger{% else %}bg-warning{% endif %}">{{ log.status }}</span></td>
+                        <td>{{ log.message }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">No logs available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

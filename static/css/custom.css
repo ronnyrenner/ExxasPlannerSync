@@ -1,0 +1,71 @@
+/* Additional custom styles */
+.card {
+    margin-bottom: 1.5rem;
+}
+
+.badge {
+    font-size: 0.9em;
+}
+
+pre code {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.table-responsive {
+    margin-bottom: 1rem;
+}
+
+.btn-icon {
+    padding: 0.25rem 0.5rem;
+}
+
+.navbar {
+    margin-bottom: 2rem;
+}
+
+.alert {
+    margin-bottom: 1.5rem;
+}
+
+/* Animation for sync button */
+.fa-spin {
+    animation: fa-spin 2s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Status badge colors */
+.badge.bg-success {
+    background-color: var(--bs-success) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--bs-danger) !important;
+}
+
+.badge.bg-warning {
+    background-color: var(--bs-warning) !important;
+}
+
+/* Form improvements */
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Card hover effect */
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
