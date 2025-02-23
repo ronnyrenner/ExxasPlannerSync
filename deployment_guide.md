@@ -29,7 +29,26 @@ sudo mkdir -p /var/log/exxas_sync
 sudo chown -R exxas_sync:exxas_sync /opt/exxas_sync /var/log/exxas_sync
 ```
 
-## 3. Install Application
+## 3. Prepare Requirements File
+
+Before installing the application, create the requirements.txt file:
+
+```bash
+cat > requirements.txt << EOL
+flask
+flask-sqlalchemy
+flask-login
+flask-wtf
+gunicorn
+apscheduler
+email-validator
+psycopg2-binary
+sqlalchemy
+werkzeug
+EOL
+```
+
+## 4. Install Application
 
 Clone or copy your application files to the installation directory:
 
@@ -46,7 +65,7 @@ sudo chown -R exxas_sync:exxas_sync venv
 sudo -u exxas_sync ./venv/bin/pip install -r requirements.txt
 ```
 
-## 4. Create Configuration File
+## 5. Create Configuration File
 
 Create a configuration file for the application:
 
@@ -71,7 +90,7 @@ sudo chown -R exxas_sync:exxas_sync /etc/exxas_sync
 sudo chmod 600 /etc/exxas_sync/config.env
 ```
 
-## 5. Create Systemd Service
+## 6. Create Systemd Service
 
 Create a systemd service file:
 
@@ -99,7 +118,7 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-## 6. Configure Nginx as Reverse Proxy
+## 7. Configure Nginx as Reverse Proxy
 
 Create Nginx configuration:
 
@@ -136,7 +155,7 @@ sudo nginx -t  # Test configuration
 sudo systemctl restart nginx
 ```
 
-## 7. Start and Enable Services
+## 8. Start and Enable Services
 
 ```bash
 # Reload systemd to recognize new service
@@ -150,7 +169,7 @@ sudo systemctl enable exxas_sync
 sudo systemctl status exxas_sync
 ```
 
-## 8. Security Considerations
+## 9. Security Considerations
 
 1. Set up SSL/TLS with Let's Encrypt:
 ```bash
@@ -165,7 +184,7 @@ sudo ufw allow 443/tcp
 sudo ufw enable
 ```
 
-## 9. Maintenance
+## 10. Maintenance
 
 ### Logging
 - Application logs: `/var/log/exxas_sync/sync_app.log`
@@ -199,23 +218,6 @@ sudo -u exxas_sync /opt/exxas_sync/venv/bin/pip install -r /opt/exxas_sync/requi
 
 # Restart the service
 sudo systemctl restart exxas_sync
-```
-
-### Dependencies
-
-The following dependencies need to be installed:
-
-```
-flask
-flask-sqlalchemy
-flask-login
-flask-wtf
-gunicorn
-apscheduler
-email-validator
-psycopg2-binary
-sqlalchemy
-werkzeug
 ```
 
 ## Troubleshooting
