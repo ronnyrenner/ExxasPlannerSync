@@ -18,7 +18,9 @@ sudo apt upgrade -y
 sudo apt install -y python3 python3-venv python3-dev build-essential libpq-dev nginx
 ```
 
-## 2. Create Application User and Directory
+## 2. Application Installation
+
+### 2.1 Create Application User and Directory
 
 Create a dedicated system user for the application:
 
@@ -29,26 +31,41 @@ sudo mkdir -p /var/log/exxas_sync
 sudo chown -R exxas_sync:exxas_sync /opt/exxas_sync /var/log/exxas_sync
 ```
 
-## 3. Prepare Requirements File
+### 2.2 Set Up CLI Tool for User Management
 
-Before installing the application, create the requirements.txt file:
+Create a separate directory for the CLI tool that regular users can access:
 
 ```bash
-cat > requirements.txt << EOL
-flask
-flask-sqlalchemy
-flask-login
-flask-wtf
-gunicorn
-apscheduler
-email-validator
-psycopg2-binary
-sqlalchemy
-werkzeug
-EOL
+# Create CLI directory
+sudo mkdir -p /usr/local/exxas-sync-cli
+sudo cp cli.py /usr/local/exxas-sync-cli/
+sudo cp app.py models.py /usr/local/exxas-sync-cli/
+
+# Create and set up virtual environment for CLI
+sudo python3 -m venv /usr/local/exxas-sync-cli/venv
+sudo /usr/local/exxas-sync-cli/venv/bin/pip install flask flask-sqlalchemy flask-login click
+
+# Create wrapper script
+sudo tee /usr/local/bin/exxas-sync-cli << 'EOF'
+#!/bin/bash
+source /usr/local/exxas-sync-cli/venv/bin/activate
+export FLASK_APP=app.py
+export DATABASE_URL=sqlite:////opt/exxas_sync/instance/sync_app.db
+python /usr/local/exxas-sync-cli/cli.py "$@"
+EOF
+
+# Set proper permissions
+sudo chmod +x /usr/local/bin/exxas-sync-cli
+sudo chmod -R g+rx /usr/local/exxas-sync-cli
+sudo chown -R root:sudo /usr/local/exxas-sync-cli
 ```
 
-## 4. Install Application
+Now regular users in the sudo group can manage users with:
+```bash
+exxas-sync-cli create-user <username> <password>
+```
+
+### 2.3 Install Main Application
 
 Clone or copy your application files to the installation directory:
 
@@ -65,7 +82,7 @@ sudo chown -R exxas_sync:exxas_sync venv
 sudo -u exxas_sync ./venv/bin/pip install -r requirements.txt
 ```
 
-## 5. Create Configuration File
+## 3. Create Configuration File
 
 Create a configuration file for the application:
 
@@ -90,7 +107,7 @@ sudo chown -R exxas_sync:exxas_sync /etc/exxas_sync
 sudo chmod 600 /etc/exxas_sync/config.env
 ```
 
-## 6. Create Systemd Service
+## 4. Create Systemd Service
 
 Create a systemd service file:
 
@@ -118,7 +135,7 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-## 7. Configure Nginx as Reverse Proxy
+## 5. Configure Nginx as Reverse Proxy
 
 Create Nginx configuration:
 
@@ -155,7 +172,7 @@ sudo nginx -t  # Test configuration
 sudo systemctl restart nginx
 ```
 
-## 8. Start and Enable Services
+## 6. Start and Enable Services
 
 ```bash
 # Reload systemd to recognize new service
@@ -169,7 +186,7 @@ sudo systemctl enable exxas_sync
 sudo systemctl status exxas_sync
 ```
 
-## 9. Security Considerations
+## 7. Security Considerations
 
 1. Set up SSL/TLS with Let's Encrypt:
 ```bash
@@ -184,7 +201,7 @@ sudo ufw allow 443/tcp
 sudo ufw enable
 ```
 
-## 10. Maintenance
+## 8. Maintenance
 
 ### Logging
 - Application logs: `/var/log/exxas_sync/sync_app.log`
@@ -220,7 +237,7 @@ sudo -u exxas_sync /opt/exxas_sync/venv/bin/pip install -r /opt/exxas_sync/requi
 sudo systemctl restart exxas_sync
 ```
 
-## Troubleshooting
+## 9. Troubleshooting
 
 1. Check service status:
 ```bash
