@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required
-from app import db, login_manager
+from app import db, login_manager, app
 from models import User
 
 auth_bp = Blueprint('auth', __name__)
@@ -8,6 +8,17 @@ auth_bp = Blueprint('auth', __name__)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@auth_bp.route('/reset-dev', methods=['GET'])
+def reset_development():
+    if not app.debug:
+        return "Not available in production", 403
+
+    # Clear all users
+    User.query.delete()
+    db.session.commit()
+    flash('Development reset completed. You can now set up an admin user.', 'info')
+    return redirect(url_for('auth.setup'))
 
 @auth_bp.route('/setup', methods=['GET', 'POST'])
 def setup():
